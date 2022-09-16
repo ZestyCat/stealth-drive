@@ -6,17 +6,17 @@ A list of up-to-date proxies is generated on instantiation. GET requests can be 
 By default, the StealthDriver uses its own list of proxies to rotate through, but the user may also provide a list of proxies when using the proxy_get() method.
 
 ## Prerequisites
-    - Selenium
-    - undetected_chromedriver
-    - bs4
-    - fake_useragent
+- Selenium
+- undetected_chromedriver
+- bs4
+- fake_useragent
 
 ## Installation
-    ```
-    git clone https://github.com/zestycat/stealth-drive
-    cd stealth-drive
-    pip install -e .
-    ```
+```
+git clone https://github.com/zestycat/stealth-drive
+cd stealth-drive
+pip install -e .
+```
 
 ## Usage:
 ### Creating a StealthDriver
