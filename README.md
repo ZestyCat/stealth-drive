@@ -23,32 +23,20 @@ pip install -e .
 ```
 # Instantiate the class, specifying options for get_proxies() method
 sd = StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
-```
 
-### GET request through rotating proxy
-```
 # Rotate through proxies until a connection is formed
 # Callback function may be passed with keyword arguments
 sd.proxy_get(url, callback=None, **kwargs)
-```
 
-### GET request without proxy
-```
 # Normal get without proxy rotation
 # Callback function may be passed with keyword arguments
 sd.get(url, callback=None, **kwargs)
-```
 
-### Create list of proxies (runs on instantiation)
-```
 # Get list of proxies. Runs on instantiation
 # Set https to True if you want https proxies only
 # Specify list of countries where proxies should be located
 sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...])
-```
 
-### Return list of proxies
-```
 sd.proxies
 ```
 
