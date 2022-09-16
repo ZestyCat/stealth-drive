@@ -1,6 +1,6 @@
 # stealth_drive
 ## Description
-The StealthDriver class r is very useful for web scraping and will get past most anti-bot measures. 
+The StealthDriver class is very useful for web scraping and will get past most anti-bot measures. 
 It is essentially a wrapper for selenium with undetected_chromedriver, with built in proxy retrieval and rotation, and randomized user agent.
 A list of up-to-date proxies is generated on instantiation. GET requests can be made using the proxy_get() method. If rotating proxies is not required, the get() method can be used.
 By default, the StealthDriver uses its own list of proxies to rotate through, but the user may also provide a list of proxies when using the proxy_get() method.
