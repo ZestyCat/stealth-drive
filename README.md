@@ -36,6 +36,7 @@ sd.get(url, callback=None, **kwargs)
 # Specify list of countries where proxies should be located
 sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...])
 
+# Return list of proxies
 sd.proxies
 ```
 
