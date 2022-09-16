@@ -19,7 +19,6 @@ pip install -e .
 ```
 
 ## Usage:
-### Creating a StealthDriver
 ```
 # Instantiate the class, specifying options for get_proxies() method
 sd = StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
