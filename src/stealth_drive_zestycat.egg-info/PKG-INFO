@@ -1,0 +1,56 @@
+Metadata-Version: 2.1
+Name: stealth-drive-zestycat
+Version: 0.0.1
+Summary: Bundled functionality for stealthy web scraping
+Author-email: Greg Bizup <g.bizup@gmail.com>
+License: Copyright (c) 2022, Gregory Bizup
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        
+Project-URL: Homepage, https://github.com/zestycat/stealth-drive
+Project-URL: Bug Tracker, https://github.com/zestycat/stealth-drive/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+This package provides the "StealthDriver" class. 
+It is essentially a wrapper for selenium with undetected_chromedriver, with built in proxy retrieval and rotation, and randomized user agent.
+A list of up-to-date proxies is generated on instantiation. GET requests can be made using the proxy_get() method. If rotating proxies is not required, the get() method can be used.
+By default, the StealthDriver uses its own list of proxies to rotate through, but the user may also provide a list of proxies when using the proxy_get() method.
+This functionality bundled together is very useful for web scraping and will get past most anti-bot measures. 
+prerequisites:
+    - Selenium
+    - undetected_chromedriver
+    - BeautifulSoup
+    - fake_useragent
+
+Usage:
+    Creating a StealthDriver
+    sd = StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
+    
+    GET request through rotating proxy
+    sd.proxy_get(url, callback=None, **kwargs)
+        - url to retrieve
+        - optional callback function
+        - keyword args for callback function
+
+    GET request without proxy
+    sd.get(url, callback=None, **kwargs)
+        - url to retrieve
+        - optional callback function
+        - keyword args for callback function
+
+    Create list of proxies (runs on instantiation)
+    sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...])
+
+    Return list of proxies
+    sd.proxies
+
+

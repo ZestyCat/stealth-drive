@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+src/stealth-drive/__init__.py
+src/stealth-drive/stealth-drive.py
+src/stealth_drive_zestycat.egg-info/PKG-INFO
+src/stealth_drive_zestycat.egg-info/SOURCES.txt
+src/stealth_drive_zestycat.egg-info/dependency_links.txt
+src/stealth_drive_zestycat.egg-info/top_level.txt
