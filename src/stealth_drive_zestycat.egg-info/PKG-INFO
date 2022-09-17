@@ -20,37 +20,46 @@ Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
 
-This package provides the "StealthDriver" class. 
+# stealth_drive
+## Description
+The StealthDriver class is very useful for web scraping and will get past most anti-bot measures. 
 It is essentially a wrapper for selenium with undetected_chromedriver, with built in proxy retrieval and rotation, and randomized user agent.
 A list of up-to-date proxies is generated on instantiation. GET requests can be made using the proxy_get() method. If rotating proxies is not required, the get() method can be used.
-By default, the StealthDriver uses its own list of proxies to rotate through, but the user may also provide a list of proxies when using the proxy_get() method.
-This functionality bundled together is very useful for web scraping and will get past most anti-bot measures. 
-prerequisites:
-    - Selenium
-    - undetected_chromedriver
-    - BeautifulSoup
-    - fake_useragent
 
-Usage:
-    Creating a StealthDriver
-    sd = StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
-    
-    GET request through rotating proxy
-    sd.proxy_get(url, callback=None, **kwargs)
-        - url to retrieve
-        - optional callback function
-        - keyword args for callback function
 
-    GET request without proxy
-    sd.get(url, callback=None, **kwargs)
-        - url to retrieve
-        - optional callback function
-        - keyword args for callback function
+## Prerequisites
+- Selenium
+- undetected_chromedriver
+- bs4
+- fake_useragent
 
-    Create list of proxies (runs on instantiation)
-    sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...])
+## Installation
+```
+git clone https://github.com/zestycat/stealth-drive
+cd stealth-drive
+pip install -e .
+```
 
-    Return list of proxies
-    sd.proxies
+## Usage:
+```
+# Instantiate the class, specifying options for get_proxies() method
+sd = StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
+
+# Rotate through proxies until a connection is formed
+# Callback function may be passed with keyword arguments
+sd.proxy_get(url, callback=None, **kwargs)
+
+# Normal get without proxy rotation
+# Callback function may be passed with keyword arguments
+sd.get(url, callback=None, **kwargs)
+
+# Get list of proxies. Runs on instantiation
+# Set https to True if you want https proxies only
+# Specify list of countries where proxies should be located
+sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...])
+
+# Return list of proxies
+sd.proxies
+```
 
 
