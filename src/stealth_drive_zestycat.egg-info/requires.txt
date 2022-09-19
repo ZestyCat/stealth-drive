@@ -2,3 +2,4 @@ fake_useragent
 undetected_chromedriver
 selenium
 bs4
+py3-validate-email

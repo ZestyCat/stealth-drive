@@ -7,5 +7,6 @@ if __name__ == '__main__':
             "fake_useragent",
             "undetected_chromedriver",
             "selenium",
-            "bs4"
+            "bs4",
+            "py3-validate-email"
         ])

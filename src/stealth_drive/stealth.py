@@ -1,3 +1,5 @@
+from collections import deque
+from urllib.parse import urlsplit
 from fake_useragent import UserAgent
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
@@ -22,7 +24,7 @@ class StealthDriver():
         options.add_argument("--disable-javascript")
         self.driver = uc.Chrome(options=options, use_subprocess=True)
 
-    def get_proxies(self, https = True, countries = None):
+    def get_proxies(self, https=True, countries=None):
         url = "https://free-proxy-list.net/"
         html = requests.get(url).content
         soup = BeautifulSoup(html, features="lxml")
@@ -97,3 +99,40 @@ def proxy_get(proxies, url):
             print("rotating to another proxy...")
             continue
     return response
+
+def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
+    """Generator function does callback on response text"""
+    new_urls = deque([start_url])
+    processed_urls = set()
+
+    while len(new_urls):
+        url = new_urls.popleft()
+        processed_urls.add(url)
+        parts = urlsplit(url)
+        base_url = f"{parts.scheme}://{parts.netloc}"
+        
+        print(f"processing {url}")
+        try:
+            if proxy:
+                response = proxy_get(proxies, url)
+            else:
+                response = requests.get(url)
+        except (requests.exceptions.MissingSchema, requests.exceptions.ConnectionError):
+            continue
+
+        soup = BeautifulSoup(response.text)
+
+        for a in soup.find_all("a"):
+            link = a.attrs["href"] if "href" in a.attrs else ""
+            if link.startswith("/"):
+                link = base_url + link
+            if link.startswith("http") and \
+                    base_url in link and not \
+                    link in new_urls and not \
+                    link in processed_urls:
+                        new_urls.append(link)
+
+        if callback:
+            yield callback(response.text, **kwargs)
+        else:
+            yield response.text
