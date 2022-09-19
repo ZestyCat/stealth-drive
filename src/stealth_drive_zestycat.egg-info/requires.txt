@@ -1,0 +1,4 @@
+fake_useragent
+undetected_chromedriver
+selenium
+bs4

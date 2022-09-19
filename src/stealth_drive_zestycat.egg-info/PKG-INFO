@@ -38,12 +38,14 @@ A list of up-to-date proxies is generated on instantiation. GET requests can be 
 git clone https://github.com/zestycat/stealth-drive
 cd stealth-drive
 pip install -e .
+
+from stealth_drive import stealth_drive
 ```
 
 ## Usage:
 ```
 # Instantiate the class, specifying options for get_proxies() method
-sd = StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
+sd = stealth_drive.StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
 
 # Rotate through proxies until a connection is formed
 # Callback function may be passed with keyword arguments

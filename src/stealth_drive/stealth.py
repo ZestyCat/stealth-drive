@@ -66,3 +66,34 @@ class StealthDriver():
             except:
                 print("rotating to another proxy...")
                 self.driver.quit()
+
+def get_proxies(https = True, countries = None):
+    url = "https://free-proxy-list.net/"
+    html = requests.get(url).content
+    soup = BeautifulSoup(html, features="lxml")
+    rows = soup.find_all("table")[0].find_all("tr")
+    table_data = []
+    for row in rows:
+        data = [td.text for td in row]
+        if https:
+            data = [d for d in data if data[6] == "yes"]
+        if countries:
+            data = [d for d in data if \
+                    data[2] in countries or data[3] in countries]
+        if len(data) != 0:
+            table_data.append(data)
+    return [f"{row[0]}:{str(row[1])}" for row in table_data]
+
+
+def proxy_get(proxies, url):
+    while True:
+        try:
+            p = random.randint(0, len(proxies) - 1)
+            print(proxies[p])
+            response = requests.get(url)
+            print(f"using proxy {proxies[p]}.")
+            break
+        except:
+            print("rotating to another proxy...")
+            continue
+    return response

@@ -1,45 +1,43 @@
-# stealth_drive
+# gib 
 ## Description
-The StealthDriver class is very useful for web scraping and will get past most anti-bot measures. 
-It is essentially a wrapper for selenium with undetected_chromedriver, with built in proxy retrieval and rotation, and randomized user agent.
-A list of up-to-date proxies is generated on instantiation. GET requests can be made using the proxy_get() method. If rotating proxies is not required, the get() method can be used.
+This package provides various tools useful in web scraping. 
+It comes with three modules: 
+- stealth: Bot detection avoidance
+- selenium_functions: Common selenium web scraping operations
+- parse: Text parsing functions such as email extraction
 
+The StealthDriver class from the stealth module is very useful for web scraping and will get past most anti-bot measures. 
 
 ## Prerequisites
-- Selenium
-- undetected_chromedriver
-- bs4
-- fake_useragent
+- Google chrome
+- Chrome webdriver
+- Webdriver must be in PATH
 
 ## Installation
 ```
 git clone https://github.com/zestycat/stealth-drive
 cd stealth-drive
 pip install -e .
-
-from stealth_drive import stealth_drive
 ```
 
 ## Usage:
 ```
-# Instantiate the class, specifying options for get_proxies() method
-sd = stealth_drive.StealthDriver(https=True, countries=["US", "UK", "Australia", etc...])
+# Using stealth module
+from stealth_drive import stealth
+sd = stealth.StealthDriver(https=True, countries=None) # Make a StealthDriver
+sd.proxy_get(url, callback=None, **kwargs) # Get page w/ rotating proxies
+sd.get(url, callback=None, **kwargs) # Get page without proxies
+sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...]) # Make list of proxies (runs on instantiation)
+sd.proxies # Return list of proxies
+stealth.get_proxies(https = True, countries = None) # get proxy list
+stealth.proxy_get(proxies, url) # requests.get() wrapped in rotating proxies
 
-# Rotate through proxies until a connection is formed
-# Callback function may be passed with keyword arguments
-sd.proxy_get(url, callback=None, **kwargs)
+# Using selenium_functions module
+from stealth_drive import selenium_functions as sf
+sf.fill_form(driver, text, element, by=By.ID, timeout=10)
+sf.click_item(driver, element, by=By.ID, timeout=10)
+sf.get_element_text(driver, element, by=By.ID, timeout=10)
+sf.check_loaded(driver, element, by=By.ID, timeout=10)
 
-# Normal get without proxy rotation
-# Callback function may be passed with keyword arguments
-sd.get(url, callback=None, **kwargs)
-
-# Get list of proxies. Runs on instantiation
-# Set https to True if you want https proxies only
-# Specify list of countries where proxies should be located
-sd.get_proxies(https=True, countries=["US", "UK", "Australia", etc...])
-
-# Return list of proxies
-sd.proxies
+# using parse module
 ```
-
-
