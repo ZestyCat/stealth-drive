@@ -1,4 +1,4 @@
-# gib 
+# stealth_drive
 ## Description
 This package provides various tools useful in web scraping. 
 It comes with three modules: 
