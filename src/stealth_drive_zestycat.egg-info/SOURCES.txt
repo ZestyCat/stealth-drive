@@ -4,9 +4,9 @@ pyproject.toml
 setup.cfg
 setup.py
 src/stealth_drive/__init__.py
-src/stealth_drive/parsing.py
+src/stealth_drive/lurk.py
+src/stealth_drive/parse.py
 src/stealth_drive/selenium_functions.py
-src/stealth_drive/stealth.py
 src/stealth_drive_zestycat.egg-info/PKG-INFO
 src/stealth_drive_zestycat.egg-info/SOURCES.txt
 src/stealth_drive_zestycat.egg-info/dependency_links.txt

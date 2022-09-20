@@ -87,12 +87,12 @@ def get_proxies(https = True, countries = None):
     return [f"{row[0]}:{str(row[1])}" for row in table_data]
 
 
-def proxy_get(proxies, url):
+def proxy_get(proxies, url, headers=None):
     while True:
         try:
             p = random.randint(0, len(proxies) - 1)
             print(proxies[p])
-            response = requests.get(url)
+            response = requests.get(url, headers)
             print(f"using proxy {proxies[p]}.")
             break
         except:
@@ -133,6 +133,6 @@ def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
                         new_urls.append(link)
 
         if callback:
-            yield callback(response.text, **kwargs)
+            yield callback(response, **kwargs)
         else:
-            yield response.text
+            yield response
