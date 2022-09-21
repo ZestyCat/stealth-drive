@@ -87,12 +87,12 @@ def get_proxies(https = True, countries = None):
     return [f"{row[0]}:{str(row[1])}" for row in table_data]
 
 
-def proxy_get(proxies, url, headers=None):
+def proxy_get(proxies, url, headers=None, timeout=3):
     while True:
         try:
             p = random.randint(0, len(proxies) - 1)
             print(proxies[p])
-            response = requests.get(url, headers)
+            response = requests.get(url, proxies= {"https":proxies[p]}, headers=headers, timeout=timeout)
             print(f"using proxy {proxies[p]}.")
             break
         except:
