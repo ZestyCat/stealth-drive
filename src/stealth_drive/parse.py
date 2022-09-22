@@ -8,7 +8,6 @@ def find_emails(obj):
     if "Response" in str(type(obj)):
         obj = obj.text
     emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", obj, re.I)
-    emails = [email for email in emails if validate_email(email)]
     if len(emails):
         print(f"Found {len(emails)}: {emails}")
         return emails
@@ -27,7 +26,7 @@ def find_phone(obj):
     """ obj may be sting or Requests response object """
     if "Response" in str(type(obj)):
         obj = obj.text
-    numbers = re.findall(r"[0-9]{3}.{0,5}?[0-9]{3}.{0,5}?[0-9]{4}", obj, re.I)
+    numbers = re.findall(r"[0-9]{3}[^0-9a-z]{0,2}?[0-9]{3}[^0-9a-z]{0,2}?[0-9]{4}", obj, re.I)
     numbers = [re.sub(r"[^0-9]", "", number) for number in numbers]
     if len(numbers):
         print(f"Found {len(numbers)}: {numbers}")
