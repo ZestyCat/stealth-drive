@@ -124,7 +124,7 @@ def spb_elevate(url, api_key, premium=False):
         }
         r = requests.get(url, proxies=proxies)
         print("Got it")
-        return
+        return r
 
 def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
     """Generator function does callback on response text"""
