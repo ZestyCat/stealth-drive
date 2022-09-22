@@ -88,6 +88,8 @@ def get_proxies(https = True, countries = None):
 
 
 def proxy_get(proxies, url, headers=None, timeout=3):
+    """ Simple free proxy rotation for free proxy lists """
+    """ for paid proxy lists use spb_elevate """
     while True:
         try:
             p = random.randint(0, len(proxies) - 1)
@@ -99,6 +101,30 @@ def proxy_get(proxies, url, headers=None, timeout=3):
             print("rotating to another proxy...")
             continue
     return response
+
+def spb_elevate(url, api_key, premium=False):
+    """ Try without proxy, then try with scrapingbee proxy """
+    try:
+        "Trying without proxy"
+        r = requests.get(url)
+        if r.status_code > 400:
+            raise Exception
+        print("Got it")
+        return r
+    except:
+        if premium:
+            print("Using premium proxy")
+            p = "&premium_proxy=True"
+        else:
+            print("Using proxy")
+            p = ""
+        proxies = {
+            "http": f"http://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8886",
+            "https": f"https://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8887"
+        }
+        r = requests.get(url, proxies=proxies)
+        print("Got it")
+        return
 
 def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
     """Generator function does callback on response text"""
