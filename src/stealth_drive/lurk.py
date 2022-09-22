@@ -105,7 +105,7 @@ def proxy_get(proxies, url, headers=None, timeout=3):
 def spb_elevate(url, api_key, premium=False):
     """ Try without proxy, then try with scrapingbee proxy """
     try:
-        "Trying without proxy"
+        print("Trying without proxy")
         r = requests.get(url)
         if r.status_code > 400:
             raise Exception
@@ -119,7 +119,7 @@ def spb_elevate(url, api_key, premium=False):
             print("Using proxy")
             p = ""
         proxies = {
-            "http": f"http://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8886",
+            #"http": f"http://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8886",
             "https": f"https://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8887"
         }
         r = requests.get(url, proxies=proxies)
