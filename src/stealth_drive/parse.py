@@ -3,16 +3,13 @@ from urllib.parse import urlsplit
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
-def find_emails(obj):
-    """ obj may be sting or Requests response object """
+def find_emails(text):
     try:
-        if "Response" in str(type(obj)):
-            obj = obj.text
-        emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", obj, re.I)
+        emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", text, re.I)
         if len(emails):
             return list(set(emails))
         else:
-            raise Exception
+            return None
     except Exception as error:
         print("Could not get email")
         return error
@@ -25,17 +22,14 @@ def find_images(obj):
     img = soup.find_all("img")
     return [i.attrs["src"] for i in img]
 
-def find_phone(obj):
-    """ obj may be sting or Requests response object """
+def find_phone(text):
     try:
-        if "Response" in str(type(obj)):
-            obj = obj.text
-        numbers = re.findall(r"[0-9]{3}[^0-9a-z]{0,2}?[0-9]{3}[^0-9a-z]{0,2}?[0-9]{4}", obj, re.I)
+        numbers = re.findall(r"[0-9]{3}[^0-9a-z]{1,2}?[0-9]{3}[^0-9a-z]{1,2}?[0-9]{4}", text, re.I)
         numbers = [re.sub(r"[^0-9]", "", number) for number in numbers]
         if len(numbers):
             return list(set(numbers))
         else:
-            raise Exception
+            return None
     except Exception as error:
         print("could not get phone number")
         return error
