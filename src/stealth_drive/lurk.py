@@ -109,22 +109,18 @@ def spb_elevate(url, api_key, premium=False):
         r = requests.get(url)
         if r.status_code > 400:
             raise Exception
-        print("Got it")
         return r
     except:
         try:
             if premium:
-                print("Using premium proxy")
                 p = "&premium_proxy=True"
             else:
-                print("Using proxy")
                 p = ""
             proxies = {
                 "http": f"http://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8886",
                 "https": f"https://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8887"
             }
             r = requests.get(url, proxies=proxies)
-            print("Got it")
             return r
         except:
             return
