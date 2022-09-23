@@ -39,10 +39,15 @@ def find_contact_url(obj, base_url=None):
     try:
         if "Response" in str(type(obj)):
             obj = obj.text
+        print(obj)
         soup = BeautifulSoup(obj)
         contact_url = str(soup.find("a", {"href" : re.compile("contact")}).get("href"))
+        print(contact_url)
         if not contact_url.startswith("http") and base_url:
+            print("joining")
             contact_url = urljoin(base_url, contact_url)
+            
+        print(contact_url)
         return contact_url
     except Exception as e:
         raise e
