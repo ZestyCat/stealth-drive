@@ -1,5 +1,6 @@
 import re
 from urllib.parse import urlsplit
+from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from validate_email import validate_email
 
