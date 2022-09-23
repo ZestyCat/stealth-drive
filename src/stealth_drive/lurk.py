@@ -102,9 +102,11 @@ def proxy_get(proxies, url, headers=None, timeout=3):
             continue
     return response
 
-def spb_get(url, api_key, premium=False):
+def spb_get(url, api_key, try_requests=True, attempts=10):
     """ Try without proxy, then try with scrapingbee proxy """
     try:
+        if not try_requests:
+            raise Exception
         print("trying to get {} without proxy".format(url))
         r = requests.get(url)
         if r.status_code > 400:
@@ -112,20 +114,22 @@ def spb_get(url, api_key, premium=False):
         return r
     except:
         print("trying to get {} with proxy".format(url))
-        try:
-            if premium:
-                p = "&premium_proxy=True"
-            else:
-                p = ""
-            proxies = {
-                "http": f"http://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8886",
-                "https": f"https://{api_key}:render_js=False&{p}@proxy.scrapingbee.com:8887"
-            }
-            r = requests.get(url, proxies=proxies)
-            return r
-        except Exception as error:
-            print("could not get url {}".format(url))
-            return error
+        n_attempts = 0
+        while n_attempts < attempts:
+            try:
+                proxies = {
+                    "http": f"http://{api_key}:render_js=False@proxy.scrapingbee.com:8886",
+                    "https": f"https://{api_key}:render_js=False@proxy.scrapingbee.com:8887"
+                }
+                print(proxies)
+                r = requests.get(url, proxies=proxies, verify=False)
+                return r
+            except Exception as error:
+                print(error)
+                n_attempts += 1
+                print(f"attempt no {n_attempts}")
+        print("could not get url {}".format(url))
+        return Exception
 
 def spb_google(client, query, render_js="False"):
     query = quote_plus(query)
