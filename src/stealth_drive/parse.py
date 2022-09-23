@@ -5,13 +5,17 @@ from bs4 import BeautifulSoup
 
 def find_emails(obj):
     """ obj may be sting or Requests response object """
-    if "Response" in str(type(obj)):
-        obj = obj.text
-    emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", obj, re.I)
-    if len(emails):
-        return emails
-    else:
-        return ""
+    try:
+        if "Response" in str(type(obj)):
+            obj = obj.text
+        emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", obj, re.I)
+        if len(emails):
+            return emails
+        else:
+            raise Exception
+    except Exception as error:
+        print("Could not get email")
+        return error
 
 def find_images(obj):
     """ obj may be sting or Requests response object """
@@ -23,14 +27,18 @@ def find_images(obj):
 
 def find_phone(obj):
     """ obj may be sting or Requests response object """
-    if "Response" in str(type(obj)):
-        obj = obj.text
-    numbers = re.findall(r"[0-9]{3}[^0-9a-z]{0,2}?[0-9]{3}[^0-9a-z]{0,2}?[0-9]{4}", obj, re.I)
-    numbers = [re.sub(r"[^0-9]", "", number) for number in numbers]
-    if len(numbers):
-        return numbers
-    else:
-        return ""
+    try:
+        if "Response" in str(type(obj)):
+            obj = obj.text
+        numbers = re.findall(r"[0-9]{3}[^0-9a-z]{0,2}?[0-9]{3}[^0-9a-z]{0,2}?[0-9]{4}", obj, re.I)
+        numbers = [re.sub(r"[^0-9]", "", number) for number in numbers]
+        if len(numbers):
+            return numbers
+        else:
+            raise Exception
+    except Exception as error:
+        print("could not get phone number")
+        return error
 
 def find_contact_url(obj, base_url=None):
     """ obj may be sting or Requests response object 
@@ -44,8 +52,12 @@ def find_contact_url(obj, base_url=None):
         if not contact_url.startswith("http") and base_url:
             contact_url = urljoin(base_url, contact_url)
         return contact_url
-    except Exception as e:
-        raise e
+    except AttributeError as error:
+        print("no contact url found")
+        return error
+    except Exception as error:
+        print("Could not get contact url")
+        return error
 
 def find_phone_and_email(obj):
     """ obj may be sting or Requests response object """
@@ -54,8 +66,9 @@ def find_phone_and_email(obj):
             obj = obj.text
         soup = BeautifulSoup(obj)
         body = soup.find("body")
-    except:
-        return None
+    except Exception as error:
+        print("Could not parse the response or text")
+        return error
     try:
         phone = find_phone(body.text)[0]
     except:
@@ -65,5 +78,5 @@ def find_phone_and_email(obj):
     except:
         email = ""
     if phone == "" and email == "":
-        return None
+        print("No phone or email found")
     return phone, email

@@ -105,11 +105,13 @@ def proxy_get(proxies, url, headers=None, timeout=3):
 def spb_get(url, api_key, premium=False):
     """ Try without proxy, then try with scrapingbee proxy """
     try:
+        print("trying to get {} without proxy".format(url))
         r = requests.get(url)
         if r.status_code > 400:
             raise Exception
         return r
     except:
+        print("trying to get {} with proxy".format(url))
         try:
             if premium:
                 p = "&premium_proxy=True"
@@ -121,9 +123,9 @@ def spb_get(url, api_key, premium=False):
             }
             r = requests.get(url, proxies=proxies)
             return r
-        except Exception as e:
-            print(e)
-            return
+        except Exception as error:
+            print("could not get url {}".format(url))
+            return error
 
 def spb_google(client, query, render_js="False"):
     query = quote_plus(query)
