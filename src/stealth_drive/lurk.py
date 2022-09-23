@@ -1,5 +1,5 @@
 from collections import deque
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, quote_plus
 from fake_useragent import UserAgent
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
@@ -102,7 +102,7 @@ def proxy_get(proxies, url, headers=None, timeout=3):
             continue
     return response
 
-def spb_elevate(url, api_key, premium=False):
+def spb_get(url, api_key, premium=False):
     """ Try without proxy, then try with scrapingbee proxy """
     try:
         r = requests.get(url)
@@ -124,6 +124,17 @@ def spb_elevate(url, api_key, premium=False):
         except Exception as e:
             print(e)
             return
+
+def spb_google(client, query, render_js="False"):
+    query = quote_plus(query)
+    google = "https://www.google.com/search?client=firefox-b-1-d&q="
+    r = client.get(google+query,
+        {
+            "custom_google" : "True",
+            "render_js" : render_js,
+        }
+    )  
+    return r
 
 def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
     """Generator function does callback on response text"""
