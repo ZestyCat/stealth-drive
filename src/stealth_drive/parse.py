@@ -54,10 +54,10 @@ def find_contact_url(obj, base_url=None):
         return contact_url
     except AttributeError as error:
         print("no contact url found")
-        return error
+        return None
     except Exception as error:
         print("Could not get contact url")
-        return error
+        return None
 
 def find_phone_and_email(obj):
     """ obj may be sting or Requests response object """
