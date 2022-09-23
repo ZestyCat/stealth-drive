@@ -31,3 +31,13 @@ def find_phone(obj):
         return numbers
     else:
         return ""
+
+def find_contact_url(obj):
+    """ obj may be sting or Requests response object """
+    if "Response" in str(type(obj)):
+        obj = obj.text
+    soup = BeautifulSoup(obj)
+    contact_url = str(soup.find("a", {"href" : re.compile("contact")}).get("href"))
+    if not contact_url.startswith("http"):
+        contact_url = urljoin(url, contact_url)
+    return contact_url
