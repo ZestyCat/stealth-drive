@@ -121,7 +121,8 @@ def spb_elevate(url, api_key, premium=False):
             }
             r = requests.get(url, proxies=proxies)
             return r
-        except:
+        except Exception as e:
+            print(e)
             return
 
 def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):

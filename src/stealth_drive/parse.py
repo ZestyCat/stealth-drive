@@ -49,13 +49,13 @@ def find_contact_url(obj, base_url=None):
 
 def find_phone_and_email(obj):
     """ obj may be sting or Requests response object """
-    if "Response" in str(type(obj)):
-        obj = obj.text
     try:
+        if "Response" in str(type(obj)):
+            obj = obj.text
         soup = BeautifulSoup(obj)
         body = soup.find("body")
     except:
-        return
+        return None
     try:
         phone = find_phone(body.text)[0]
     except:
@@ -64,4 +64,6 @@ def find_phone_and_email(obj):
         email = find_emails(body.text)[0]
     except:
         email = ""
+    if phone == "" and email == "":
+        return None
     return phone, email
