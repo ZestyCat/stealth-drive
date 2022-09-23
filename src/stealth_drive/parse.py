@@ -51,8 +51,11 @@ def find_phone_and_email(obj):
     """ obj may be sting or Requests response object """
     if "Response" in str(type(obj)):
         obj = obj.text
-    soup = BeautifulSoup(obj)
-    body = soup.find("body")
+    try:
+        soup = BeautifulSoup(obj)
+        body = soup.find("body")
+    except:
+        return
     try:
         phone = find_phone(body.text)[0]
     except:
