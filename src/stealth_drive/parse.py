@@ -41,3 +41,19 @@ def find_contact_url(obj, base_url=None):
     if not contact_url.startswith("http") and base_url:
         contact_url = urljoin(base_url, contact_url)
     return contact_url
+
+def find_phone_and_email(obj):
+    """ obj may be sting or Requests response object """
+    if "Response" in str(type(obj)):
+        obj = obj.text
+    soup = BeautifulSoup(obj)
+    body = soup.find("body")
+    try:
+        phone = find_phone(body.text)[0]
+    except:
+        phone = ""
+    try:
+        email = find_emails(body.text)[0]
+    except:
+        email = ""
+    return phone, email
