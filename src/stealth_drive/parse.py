@@ -9,7 +9,7 @@ def find_emails(text):
         if len(emails):
             return list(set(emails))
         else:
-            return None
+            return ""
     except Exception as error:
         print("Could not get email")
         return error
@@ -29,7 +29,7 @@ def find_phone(text):
         if len(numbers):
             return list(set(numbers))
         else:
-            return None
+            return ""
     except Exception as error:
         print("could not get phone number")
         return error
