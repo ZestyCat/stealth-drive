@@ -80,5 +80,6 @@ def find_phone_and_email(obj):
         email = ""
     if phone == "" and email == "":
         print("No phone or email found")
+        return None
     print(phone, email)
     return phone, email
