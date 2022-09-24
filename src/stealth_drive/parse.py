@@ -58,15 +58,17 @@ def find_phone_and_email(obj):
     try:
         if "Response" in str(type(obj)):
             obj = obj.text
+        soup = BeautifulSoup(obj)
+        text = soup.find("body").get_text(separator=" ")
     except Exception as error:
         print("Could not parse the response or text")
         return error
     try:
-        phone = find_phone(obj)
+        phone = find_phone(text)
     except:
         phone = ""
     try:
-        email = find_emails(obj)
+        email = find_emails(text)
     except:
         email = ""
     if phone == "" and email == "":
