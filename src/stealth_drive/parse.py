@@ -42,7 +42,7 @@ def find_contact_url(obj, base_url=None):
         if "Response" in str(type(obj)):
             obj = obj.text
         soup = BeautifulSoup(obj)
-        contact_url = str(soup.find("a", {"href" : re.compile("contact")}).get("href"))
+        contact_url = str(soup.find("a", {"href" : re.compile(r".*contact.*")}).get("href"))
         if not contact_url.startswith("http") and base_url:
             contact_url = urljoin(base_url, contact_url)
         return contact_url
@@ -62,9 +62,9 @@ def find_phone_and_email(obj):
         text = soup.find("body").get_text(separator=" ")
     except Exception as error:
         print("Could not parse the response or text")
-        return error
+        return ("", "")
     try:
-        phone = find_phone(text)
+        phone = find_phone(text)[0]
     except:
         phone = ""
     try:
