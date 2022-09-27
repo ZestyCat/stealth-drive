@@ -90,29 +90,31 @@ def get_proxies(https = True, countries = None):
 def proxy_get(proxies, url, headers=None, timeout=3):
     """ Simple free proxy rotation for free proxy lists """
     """ for paid proxy lists use spb_elevate """
-    while True:
+    for proxy in proxies:
         try:
-            p = random.randint(0, len(proxies) - 1)
-            print(proxies[p])
-            response = requests.get(url, proxies= {"https":proxies[p]}, headers=headers, timeout=timeout)
-            print(f"using proxy {proxies[p]}.")
-            break
+            response = requests.get(url, proxies= {"https":proxy}, headers=headers, timeout=timeout)
+            return response
         except:
-            print("rotating to another proxy...")
             continue
-    return response
 
-def spb_get(url, api_key, try_requests=True, attempts=10):
-    """ Try without proxy, then try with scrapingbee proxy """
+def spb_get(url, api_key, headers=None, try_requests=True, try_freeproxies=False, attempts=10):
+    """ Try without proxy, then optionally try with free proxies, then try with scrapingbee proxy """
     try:
         if not try_requests:
             raise Exception
-        r = requests.get(url)
+        r = requests.get(url, headers=headers)
         if r.status_code > 400:
             raise ValueError
         print("Got {} without proxy".format(url))
         return r
     except ValueError:
+        if try_freeproxies:
+            print("Trying with free proxies...")
+            proxies = get_proxies(https=True)
+            r = proxy_get(proxies, url, headers=headers)
+            if r is not None:
+                print("Got {} using free proxy".format(url))
+                return r
         n_attempts = 0
         while n_attempts < attempts:
             try:
@@ -121,7 +123,7 @@ def spb_get(url, api_key, try_requests=True, attempts=10):
                     "https": f"https://{api_key}:render_js=False@proxy.scrapingbee.com:8887"
                 }
                 print(proxies)
-                r = requests.get(url, proxies=proxies, verify=False)
+                r = requests.get(url, proxies=proxies, headers=headers, verify=False)
                 print("Got {} with proxy".format(url))
                 return r
             except Exception as error:
