@@ -107,13 +107,12 @@ def spb_get(url, api_key, try_requests=True, attempts=10):
     try:
         if not try_requests:
             raise Exception
-        print("trying to get {} without proxy".format(url))
         r = requests.get(url)
         if r.status_code > 400:
-            raise Exception
+            raise ValueError
+        print("Got {} without proxy".format(url))
         return r
-    except:
-        print("trying to get {} with proxy".format(url))
+    except ValueError:
         n_attempts = 0
         while n_attempts < attempts:
             try:
@@ -123,9 +122,10 @@ def spb_get(url, api_key, try_requests=True, attempts=10):
                 }
                 print(proxies)
                 r = requests.get(url, proxies=proxies, verify=False)
+                print("Got {} with proxy".format(url))
                 return r
             except Exception as error:
-                print(error)
+                print(f"Failed to get resource with error:\n{error}\n trying again {attempts-n_attempts} more times.")
                 n_attempts += 1
                 print(f"attempt no {n_attempts}")
         print("could not get url {}".format(url))
