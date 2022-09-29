@@ -77,5 +77,5 @@ def find_phone_and_email(obj):
     return phone, email
 
 def multiple_replace(text, dict):
-    regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+    regex = re.compile("(\b%s\b)" % "|".join(map(re.escape, dict.keys())))
     return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text) 
