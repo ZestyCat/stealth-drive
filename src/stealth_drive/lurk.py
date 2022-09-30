@@ -11,7 +11,8 @@ class StealthDriver():
     def __init__(self, **kwargs):
         print("getting proxies...")
         self.proxies = self.get_proxies(**kwargs)
-    
+        self.init_driver()
+
     def init_driver(self, proxy=None):
         if hasattr(self, "driver"):
             self.driver.quit()
