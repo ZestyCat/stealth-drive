@@ -8,9 +8,10 @@ import requests
 
 class StealthDriver():
     """ Undetected chromdriver with rotating proxies """
-    def __init__(self, **kwargs):
-        print("getting proxies...")
-        self.proxies = self.get_proxies(**kwargs)
+    def __init__(self, free_proxies=False, **kwargs):
+        if free_proxies:
+            print("getting proxies...")
+            self.proxies = self.get_proxies(**kwargs)
         self.init_driver()
 
     def init_driver(self, proxy=None):
