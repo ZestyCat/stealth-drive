@@ -8,22 +8,24 @@ import requests
 
 class StealthDriver():
     """ Undetected chromdriver with rotating proxies """
-    def __init__(self, free_proxies=False, **kwargs):
+    def __init__(self, proxy=None, free_proxies=False, load_images=False, **kwargs):
         if free_proxies:
             print("getting proxies...")
             self.proxies = self.get_proxies(**kwargs)
-        self.init_driver()
+        self.init_driver(proxy=proxy, load_images=load_images)
 
-    def init_driver(self, proxy=None):
+    def init_driver(self, proxy=None, load_images=False):
         if hasattr(self, "driver"):
             self.driver.quit()
         ua = UserAgent()
         userAgent = ua.random
         options = uc.ChromeOptions()
+        if not load_images:
+            prefs = {"profile.managed_default_content_settings.images": 2}
+            options.add_experimental_option("prefs", prefs)
         options.add_argument(f"--user-agent={userAgent}")
         if proxy:
             options.add_argument(f"--proxy-server={proxy}")
-        options.add_argument("--disable-javascript")
         self.driver = uc.Chrome(options=options, use_subprocess=True)
 
     def get_proxies(self, https=True, countries=None):
