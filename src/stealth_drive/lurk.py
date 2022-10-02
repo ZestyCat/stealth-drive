@@ -184,3 +184,25 @@ def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
             yield callback(response, **kwargs)
         else:
             yield response
+
+def get_until_got(n_tries, logfile=None): # nice decorator to try get request n times until you get a 200, and optional logging
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for i in range(0, n_tries):
+                try:
+                    r = func(*args, **kwargs)
+                    if r.status_code != 200:
+                        raise ValueError
+                    if logfile:
+                        text = f"Got {args[1]} after {i} attempts.\n"
+                        with open(logfile, "a") as f:
+                            f.write(text)
+                    return r
+                except ValueError:
+                    if logfile:
+                        text = f"Failed to get {args[1]} after {i} attempts with message {r.response}\nfor reason {r.reason}\n"
+                        with open(logfile, "a") as f:
+                            f.write(text)
+                    continue
+        return wrapper
+    return decorator
