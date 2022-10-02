@@ -101,41 +101,30 @@ def proxy_get(proxies, url, headers=None, timeout=3):
         except:
             continue
 
-def spb_get(url, api_key, headers=None, try_requests=True, try_freeproxies=False, premium="True", attempts=3):
-    """ Try without proxy, then optionally try with free proxies, then try with scrapingbee proxy """
+def spb_get(api_key, url, headers=None, try_requests=True, premium=False):
+    """ Try without proxy, try with scrapingbee proxy """
     try:
         if not try_requests:
-            raise Exception
-        r = requests.get(url, headers=headers)
-        if r.status_code > 400:
             raise ValueError
-        print("Got {} without proxy".format(url))
+        r = requests.get(url, headers=headers)
+        if r.status_code != 200:
+            raise ValueError
         return r
     except ValueError:
-        if try_freeproxies:
-            print("Trying with free proxies...")
-            proxies = get_proxies(https=True)
-            r = proxy_get(proxies, url, headers=headers)
-            if r is not None:
-                print("Got {} using free proxy".format(url))
-                return r
-        n_attempts = 0
-        while n_attempts < attempts:
-            try:
-                proxies = {
-                    "http": f"http://{api_key}:render_js=False&premium_proxy={premium}@proxy.scrapingbee.com:8886",
-                    "https": f"https://{api_key}:render_js=False&premium_proxy={premium}@proxy.scrapingbee.com:8887"
-                }
-                print(proxies)
-                r = requests.get(url, proxies=proxies, headers=headers, verify=False)
-                print("Got {} with proxy".format(url))
-                return r
-            except Exception as error:
-                print(f"Failed to get resource with error:\n{error}\n trying again {attempts-n_attempts} more times.")
-                n_attempts += 1
-                print(f"attempt no {n_attempts}")
-        print("could not get url {}".format(url))
-        return Exception
+        if premium:
+            proxies = {
+                "http": f"http://{api_key}:render_js=False&premium_proxy=True@proxy.scrapingbee.com:8886",
+                "https": f"https://{api_key}:render_js=False&premium_proxy=True@proxy.scrapingbee.com:8887"
+            }
+        else:
+            proxies = {
+                "http": f"http://{api_key}:render_js=False@proxy.scrapingbee.com:8886",
+                "https": f"https://{api_key}:render_js=False@proxy.scrapingbee.com:8887"
+            }
+
+        print(proxies)
+        r = requests.get(url, proxies=proxies, headers=headers, verify=False)
+        return r
 
 def spb_google(client, query, render_js="False"):
     query = quote_plus(query)
