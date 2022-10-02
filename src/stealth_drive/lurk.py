@@ -101,7 +101,7 @@ def proxy_get(proxies, url, headers=None, timeout=3):
         except:
             continue
 
-def spb_get(url, api_key, headers=None, try_requests=True, try_freeproxies=False, attempts=10):
+def spb_get(url, api_key, headers=None, try_requests=True, try_freeproxies=False, premium="True", attempts=3):
     """ Try without proxy, then optionally try with free proxies, then try with scrapingbee proxy """
     try:
         if not try_requests:
@@ -123,8 +123,8 @@ def spb_get(url, api_key, headers=None, try_requests=True, try_freeproxies=False
         while n_attempts < attempts:
             try:
                 proxies = {
-                    "http": f"http://{api_key}:render_js=False@proxy.scrapingbee.com:8886",
-                    "https": f"https://{api_key}:render_js=False@proxy.scrapingbee.com:8887"
+                    "http": f"http://{api_key}:render_js=False&premium_proxy={premium}@proxy.scrapingbee.com:8886",
+                    "https": f"https://{api_key}:render_js=False&premium_proxy={premium}@proxy.scrapingbee.com:8887"
                 }
                 print(proxies)
                 r = requests.get(url, proxies=proxies, headers=headers, verify=False)
