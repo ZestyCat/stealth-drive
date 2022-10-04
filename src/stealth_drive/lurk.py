@@ -6,10 +6,13 @@ from bs4 import BeautifulSoup
 import random
 import requests
 
-def make_driver(proxy=None):
+def make_driver(proxy=None, load_images=False):
     options = uc.ChromeOptions()
     if proxy:
         options.add_argument(f"--proxy-server={proxy}")
+    if not load_images:
+        prefs = {"profile.managed_default_content_settings.images": 2}
+        options.add_experimental_option("prefs", prefs)
     driver = uc.Chrome(options=options, use_subprocess=True)
     return driver
 
