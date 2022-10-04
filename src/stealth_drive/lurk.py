@@ -189,7 +189,7 @@ def get_until_got(n_tries, logfile=None): # nice decorator to try get request n 
                     return r
                 except ValueError:
                     if logfile:
-                        text = f"Failed to get {args[1]} after {i} attempts with message {r.response}\nfor reason {r.reason}\n"
+                        text = f"Failed to get {args[1]} after {i} attempts with message {r.text}\nfor reason {r.reason}\n"
                         with open(logfile, "a") as f:
                             f.write(text)
                     continue
