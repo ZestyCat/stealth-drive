@@ -6,6 +6,13 @@ from bs4 import BeautifulSoup
 import random
 import requests
 
+def make_driver(proxy=None):
+    options = uc.ChromeOptions()
+    if proxy:
+        options.add_argument(f"--proxy-server={proxy}")
+    driver = uc.Chrome(options=options, use_subprocess=True)
+    return driver
+
 class StealthDriver():
     """ Undetected chromdriver with rotating proxies """
     def __init__(self, proxy=None, free_proxies=False, load_images=False, **kwargs):
