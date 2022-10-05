@@ -22,3 +22,15 @@ def get_element_text(driver, element, by = By.ID, timeout=10):
 def check_loaded(driver, element, by=By.ID, timeout=10):
     WebDriverWait(driver, timeout).until( \
             EC.presence_of_element_located((by, element)))
+
+def get_element(driver, element, by = By.ID, timeout=10):
+    WebDriverWait(driver, timeout).until( \
+        EC.presence_of_element_located((by, element)))
+    ele = driver.find_element(by, element)
+    return ele
+
+def get_elements(driver, element, by = By.ID, timeout=10):
+    WebDriverWait(driver, timeout).until( \
+        EC.presence_of_element_located((by, element)))
+    ele = driver.find_elements(by, element)
+    return ele
