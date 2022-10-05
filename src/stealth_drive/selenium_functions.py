@@ -8,14 +8,16 @@ def fill_form(driver, text, element, by = By.ID, timeout=10):
     input.clear()
     input.send_keys(text)
    
-def click_item(driver, element, by = By.ID, timeout=10, js_click=True):
+def click_item(driver, element, by = By.ID, timeout=10, multi=False):
     WebDriverWait(driver, timeout).until( \
         EC.element_to_be_clickable((by, element)))
-    btn = driver.find_element(by, element)
-    if js_click:
-        driver.execute_script("arguments[0].click();", btn)
+    if multi:
+        btn = driver.find_elements(by, element)
+        for b in btn:
+            driver.execute_script("arguments[0].click();", b)
     else:
-        btn.click()
+        btn = driver.find_element(by, element)
+        driver.execute_script("arguments[0].click();", btn)
     
 def get_element_text(driver, element, by = By.ID, timeout=10):
     WebDriverWait(driver, timeout).until( \
