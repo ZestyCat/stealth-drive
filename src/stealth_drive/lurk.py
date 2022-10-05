@@ -8,6 +8,7 @@ import requests
 
 def make_driver(proxy=None, load_images=False):
     options = uc.ChromeOptions()
+    options.add_argument("--no-sandbox")
     if proxy:
         options.add_argument(f"--proxy-server={proxy}")
     if not load_images:
