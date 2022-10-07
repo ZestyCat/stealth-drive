@@ -14,6 +14,7 @@ def make_driver(proxy=None, load_images=False):
         prefs = {"profile.managed_default_content_settings.images": 2}
         options.add_experimental_option("prefs", prefs)
     driver = uc.Chrome(options=options, use_subprocess=True)
+    input("You have started an Undetected Chromedriver!\nTake a minute to set up ublock origin before scraping.\n")
     return driver
 
 class StealthDriver():
