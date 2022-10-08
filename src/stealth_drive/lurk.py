@@ -1,5 +1,5 @@
 from collections import deque
-from urllib.parse import urlsplit, quote_plus
+from urllib.parse import urlsplit, quote_plus, urljoin
 from fake_useragent import UserAgent
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
