@@ -225,9 +225,12 @@ class InstagramProfile():
         n_posts = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
         n_followers = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
         n_following = soup.select_one("div[class='item item_following'] > div[class='num']").text.replace(",", "").strip()
-        n_posts = int(re.sub("k", "000", n_posts))
-        n_followers = int(re.sub("k", "000", n_followers))
-        n_following = int(re.sub("k", "001", n_following))        
+        n_posts = re.sub(r"\.\dk", "500", n_posts)
+        n_posts = re.sub("k", "000", n_posts)
+        n_followers = re.sub(r"\.\dk", "500", n_followers)
+        n_followers = re.sub("k", "000", n_followers)
+        n_following = re.sub(r"\.\dk", "500", n_following)        
+        n_following = re.sub("k", "000", n_following)        
         try:
             title = soup.select_one("h1[class='fullname']").text
             bio = soup.select_one("div[class='sum']").text
@@ -238,9 +241,9 @@ class InstagramProfile():
             "username": username,
             "title": title, 
             "bio": bio,
-            "n_posts": n_posts,
-            "n_followers": n_followers,
-            "n_following": n_following
+            "n_posts": int(n_posts),
+            "n_followers": int(n_followers),
+            "n_following": int(n_following)
         }
         return data
 
