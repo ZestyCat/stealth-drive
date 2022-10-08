@@ -5,6 +5,9 @@ import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 import random
 import requests
+import json
+import re
+import os
 
 def make_driver(proxy=None, load_images=False):
     options = uc.ChromeOptions()
@@ -206,3 +209,152 @@ def get_until_got(n_tries, logfile=None): # nice decorator to try get request n 
                     continue
         return wrapper
     return decorator
+
+class InstagramProfile():
+    def __init__(self, driver, username, posts=10):
+        self.driver = driver
+        self.posts = self.get_posts(username, n=posts)
+        self.data = self.get_basic_info(username)
+        self.data["posts"] = self.posts
+
+    def get_basic_info(self, username):
+        print(f"getting profile data for {username}")
+        self.url = f"https://pixwox.com/profile/{username}/"
+        self.driver.get(self.url)
+        soup = BeautifulSoup(self.driver.page_source)
+        n_posts = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
+        n_followers = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
+        n_following = soup.select_one("div[class='item item_following'] > div[class='num']").text.replace(",", "").strip()
+        n_posts = int(re.sub("k", "000", n_posts))
+        n_followers = int(re.sub("k", "000", n_followers))
+        n_following = int(re.sub("k", "001", n_following))        
+        try:
+            title = soup.select_one("h1[class='fullname']").text
+            bio = soup.select_one("div[class='sum']").text
+        except AttributeError:
+            title = ""
+            bio = ""
+        data = {
+            "username": username,
+            "title": title, 
+            "bio": bio,
+            "n_posts": n_posts,
+            "n_followers": n_followers,
+            "n_following": n_following
+        }
+        return data
+
+    def get_posts(self, username, n=10, get_comments=True):
+        print(f"getting posts for {username}")
+        self.driver.get(f"https://pixwox.com/profile/{username}")
+        soup = BeautifulSoup(self.driver.page_source)
+        try:
+            n_posts = int(soup.select_one("div[class='item item_posts'] > div[class='num']").text.replace(",", "").strip())
+            if n_posts == 0:
+                return []
+            if soup.select_one("div[class='notice'] > div[class='txt']"):
+                return []
+        except AttributeError:
+            print("Page not found!")
+        atags = soup.select("a[class='cover_link']")
+        hrefs = [a.attrs["href"] for a in atags]
+        links = [urljoin("https://pixwox.com", href) for href in hrefs]
+        posts = []
+        for i, link in enumerate(links):
+            if i >= n:
+                break
+            try:
+                self.driver.get(link)
+            except TimeoutException as e:
+                print(e)
+                continue # if timeout
+            post = {
+                "post": link,
+                "likes": 0,
+                "caption": "",
+                "media": "",
+                "mentions": [],
+                "hashtags": [],
+                "comments": []
+            }
+            soup = BeautifulSoup(self.driver.page_source)
+            wrapper = soup.select_one("div[class='view_w']")
+            post["likes"] = soup.select_one("div[class='count_item count_item_like cf'] > span[class='num']").text
+            if post["likes"] == 0:
+                post["likes"] = "NA" # Viewing likes on some posts is disabled
+            post["caption"] = wrapper.select_one("img").attrs["alt"]
+            post["media"] = wrapper.select_one("a").attrs["href"]
+            post["mentions"] = re.findall(r"@\w+", post["caption"])
+            post["hashtags"] = re.findall(r"#\w+", post["caption"])
+            if get_comments:
+                try:
+                    comments = soup.select("div[class=comment_w]")
+                    for c in comments:
+                        comment = {
+                            "username": c.select_one("div[class='username'] > a").text.replace("@", ""),
+                            "comment": c.select_one("div[class='sum']").text
+                        }
+                        post["comments"].append(comment)
+                except:
+                    pass
+            posts.append(post)
+        return posts
+
+class InstagramInfluencer(InstagramProfile):
+    def __init__(self, driver, username, session_id, apify_api_key, posts=10, follower_count=100):
+        super().__init__(driver, username, posts=posts)
+        self.get_followers(username, apify_api_key, session_id, n=follower_count)
+        self.data["followers"] = self.followers
+        self.get_audience_posts(n=posts)
+
+    def get_followers(self, username, apify_api_key, session_id,  n=100):
+        print(f"getting followers for {username}")
+        url = f"https://instagram.com/{username}"
+        json = {
+            "includeFollowers": True,
+            "includeFollowing": False,
+            "maxItems": n,
+            "proxy": {
+                "useApifyProxy": False
+            },
+            "sessionid": session_id,
+            "startUrls": [{"url": url}]
+            
+        }
+        requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
+        followers = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
+        self.followers = followers.json()
+        if len(self.followers) < n:
+            print("Your instagram account was banned!")
+            raise ValueError
+
+    def get_following(self, username, apify_api_key, session_id,  n=100):
+        print(f"getting following for {username}")
+        url = f"https://instagram.com/{username}"
+        json = {
+            "includeFollowers": False,
+            "includeFollowing": True,
+            "maxItems": n,
+            "proxy": {
+                "useApifyProxy": False
+            },
+            "sessionid": session_id,
+            "startUrls": [{"url": url}]
+            
+        }
+        requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
+        following = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
+        self.following = following.json()
+        if len(self.following) < n:
+            print("Your instagram account was banned!")
+            raise ValueError
+
+    def get_audience_posts(self, n=10):
+        for i, follower in enumerate(self.data["followers"]):
+            print(f"getting profile data and posts for follower {i} of {enumerate(self.data['followers'])}")
+            username = follower["username"]
+            basic_info = super().get_basic_info(username)
+            posts = super().get_posts(username, n=n, get_comments=False)
+            self.data["followers"][i]["posts"] = posts
+            self.data["followers"][i]["n_followers"] = basic_info["n_followers"]
+            self.data["followers"][i]["n_following"] = basic_info["n_following"] 
