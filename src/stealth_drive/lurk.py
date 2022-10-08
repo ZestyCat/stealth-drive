@@ -1,4 +1,5 @@
 from collections import deque
+from selenium.common.exceptions import TimeoutException
 from urllib.parse import urlsplit, quote_plus, urljoin
 from fake_useragent import UserAgent
 import undetected_chromedriver as uc
