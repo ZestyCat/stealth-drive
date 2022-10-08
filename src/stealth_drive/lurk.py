@@ -327,8 +327,6 @@ class InstagramInfluencer(InstagramProfile):
         requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
         followers = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
         self.followers = followers.json()
-        if len(self.followers) < n:
-            print("You did not get all the followers you asked for.\nEither they don't have that many or you got banned!")
 
     def get_following(self, username, apify_api_key, session_id,  n=100):
         print(f"getting following for {username}")
@@ -347,8 +345,6 @@ class InstagramInfluencer(InstagramProfile):
         requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
         following = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
         self.following = following.json()
-        if len(self.following) < n:
-            print("You did not get all the following you asked for.\nEither they don't have that many or you got banned!")
 
     def get_audience_posts(self, n=10):
         for i, follower in enumerate(self.data["followers"]):
