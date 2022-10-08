@@ -5,9 +5,7 @@ import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 import random
 import requests
-import json
 import re
-import os
 
 def make_driver(proxy=None, load_images=False):
     options = uc.ChromeOptions()
@@ -222,20 +220,31 @@ class InstagramProfile():
         self.url = f"https://pixwox.com/profile/{username}/"
         self.driver.get(self.url)
         soup = BeautifulSoup(self.driver.page_source)
-        n_posts = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
-        n_followers = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
-        n_following = soup.select_one("div[class='item item_following'] > div[class='num']").text.replace(",", "").strip()
-        n_posts = re.sub(r"\.\dk", "500", n_posts)
-        n_posts = re.sub("k", "000", n_posts)
-        n_followers = re.sub(r"\.\dk", "500", n_followers)
-        n_followers = re.sub("k", "000", n_followers)
-        n_following = re.sub(r"\.\dk", "500", n_following)        
-        n_following = re.sub("k", "000", n_following)        
+        try:
+            n_posts = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
+            n_posts = re.sub(r"\.\dk", "500", n_posts)
+            n_posts = re.sub("k", "000", n_posts)
+        except AttributeError:
+            n_posts = ""
+        try:
+            n_followers = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
+            n_followers = re.sub(r"\.\dk", "500", n_followers)
+            n_followers = re.sub("k", "000", n_followers)
+        except AttributeError:
+            n_followers = ""
+        try:
+            n_following = soup.select_one("div[class='item item_following'] > div[class='num']").text.replace(",", "").strip()
+            n_following = re.sub(r"\.\dk", "500", n_following)        
+            n_following = re.sub("k", "000", n_following)        
+        except AttributeError:
+            n_following = ""
         try:
             title = soup.select_one("h1[class='fullname']").text
-            bio = soup.select_one("div[class='sum']").text
         except AttributeError:
             title = ""
+        try:
+            bio = soup.select_one("div[class='sum']").text
+        except AttributeError:
             bio = ""
         data = {
             "username": username,
