@@ -348,7 +348,7 @@ class InstagramInfluencer(InstagramProfile):
 
     def get_audience_posts(self, n=10):
         for i, follower in enumerate(self.data["followers"]):
-            print(f"getting profile data and posts for follower {i} of {enumerate(self.data['followers'])}")
+            print(f"getting profile data and posts for follower {i} of {len(self.data['followers'])}")
             username = follower["username"]
             basic_info = super().get_basic_info(username)
             posts = super().get_posts(username, n=n, get_comments=False)
