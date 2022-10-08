@@ -327,6 +327,9 @@ class InstagramInfluencer(InstagramProfile):
         requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
         followers = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
         self.followers = followers.json()
+        if len(followers) < n:
+            pass
+            # do account cycling
 
     def get_following(self, username, apify_api_key, session_id,  n=100):
         print(f"getting following for {username}")
