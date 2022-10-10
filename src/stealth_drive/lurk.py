@@ -1,5 +1,6 @@
 from collections import deque
 from selenium.common.exceptions import TimeoutException
+import googleapiclient.discovery
 from urllib.parse import urlsplit, quote_plus, urljoin
 from fake_useragent import UserAgent
 import undetected_chromedriver as uc
@@ -7,6 +8,7 @@ from bs4 import BeautifulSoup
 import random
 import requests
 import re
+import os
 
 def make_driver(proxy=None, load_images=False):
     options = uc.ChromeOptions()
@@ -368,3 +370,41 @@ class InstagramInfluencer(InstagramProfile):
             self.data["followers"][i]["posts"] = posts
             self.data["followers"][i]["n_followers"] = basic_info["n_followers"]
             self.data["followers"][i]["n_following"] = basic_info["n_following"] 
+
+class YoutubeChannel():
+    def __init__(self, api_key, channel):
+        self.channel_id = self.get_channel_id(channel)
+        self.data = self.get_channel_data(api_key, self.channel_id)
+
+    def get_channel_id(self, channel):
+        r = requests.get(f"https://youtube.com/c/{channel}")
+        soup = BeautifulSoup(r.text)
+        href = soup.select_one("link[itemprop='url']").attrs["href"]
+        return href.split("/")[-1]
+    
+    def get_channel_data(self, api_key, channel_id):
+        os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+        youtube = googleapiclient.discovery.build(
+            "youtube", "v3", developerKey=api_key
+        )
+        request = youtube.channels().list(
+            part="statistics,contentOwnerDetails,localizations,snippet,statistics,status,topicDetails,brandingSettings",
+            id=channel_id
+        )
+        response = request.execute()
+        return {
+            "title": response["items"][0]["snippet"]["title"],
+            "description": re.sub(r"\\", "", re.sub(r"\n+", " ", response["items"][0]["snippet"]["description"])),
+            "custom_url": response["items"][0]["snippet"]["customUrl"],
+            "published_date": response["items"][0]["snippet"]["publishedAt"],
+            "view_count": response["items"][0]["statistics"]["viewCount"],
+            "n_subscribers": response["items"][0]["statistics"]["subscriberCount"],
+            "hidden_sub_count": response["items"][0]["statistics"]["hiddenSubscriberCount"],
+            "video_count": response["items"][0]["statistics"]["videoCount"],
+            "topic_categories": response["items"][0]["topicDetails"]["topicCategories"],
+            "country": response["items"][0]["brandingSettings"]["channel"]["country"],
+            "keywords": response["items"][0]["brandingSettings"]["channel"]["keywords"]
+        }
+
+    def get_channel_analytics(self, api_key, channel_id):
+        pass
