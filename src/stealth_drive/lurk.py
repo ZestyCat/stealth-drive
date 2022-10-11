@@ -471,7 +471,6 @@ class YoutubeChannel():
             "n_views": response["items"][0]["statistics"]["viewCount"],
             "n_likes": response["items"][0]["statistics"]["likeCount"],
             "n_favorites": response["items"][0]["statistics"]["favoriteCount"],
-            "n_comments": response["items"][0]["statistics"]["commentCount"],
             "comments": self.get_video_comments(api_key, video_id)
         }
 
