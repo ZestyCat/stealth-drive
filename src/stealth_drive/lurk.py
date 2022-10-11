@@ -464,6 +464,12 @@ class YoutubeChannel():
             id=video_id
         )
         response = request.execute()
+        try:
+            comments = self.get_video_comments(api_key, video_id)
+            n_comments = len(comments["items"])
+        except:
+            comments = None
+            n_comments = None
         return {
             "title": response["items"][0]["snippet"]["title"],
             "description": response["items"][0]["snippet"]["description"],
@@ -472,7 +478,8 @@ class YoutubeChannel():
             "n_views": response["items"][0]["statistics"]["viewCount"],
             "n_likes": response["items"][0]["statistics"]["likeCount"],
             "n_favorites": response["items"][0]["statistics"]["favoriteCount"],
-            "comments": self.get_video_comments(api_key, video_id)
+            "n_comments": n_comments,
+            "comments": comments
         }
 
     def get_channel_data(self, api_key, n_videos=10):
