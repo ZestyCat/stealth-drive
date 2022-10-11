@@ -1,4 +1,5 @@
 from collections import deque
+from inspect import Attribute
 from selenium.common.exceptions import TimeoutException
 import googleapiclient.discovery
 from urllib.parse import urlsplit, quote_plus, urljoin
@@ -9,7 +10,11 @@ import random
 import requests
 import re
 import os
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
+# Selenium functions
 def make_driver(proxy=None, load_images=False):
     options = uc.ChromeOptions()
     if proxy:
@@ -20,6 +25,45 @@ def make_driver(proxy=None, load_images=False):
     driver = uc.Chrome(options=options, use_subprocess=True)
     input("You have started an Undetected Chromedriver!\nTake a minute to set up ublock origin before scraping.\n")
     return driver
+
+def fill_form(driver, text, element, by = By.ID, timeout=10):
+    input = WebDriverWait(driver, timeout).until( \
+        EC.presence_of_element_located((by, element)))
+    input.clear()
+    input.send_keys(text)
+   
+def click_item(driver, element, by = By.ID, timeout=10, multi=False):
+    WebDriverWait(driver, timeout).until( \
+        EC.element_to_be_clickable((by, element)))
+    if multi:
+        btn = driver.find_elements(by, element)
+        for b in btn:
+            driver.execute_script("arguments[0].click();", b)
+    else:
+        btn = driver.find_element(by, element)
+        driver.execute_script("arguments[0].click();", btn)
+    
+def get_element_text(driver, element, by = By.ID, timeout=10):
+    WebDriverWait(driver, timeout).until( \
+        EC.presence_of_element_located((by, element)))
+    ele = driver.find_element(by, element)
+    return ele.text
+
+def check_loaded(driver, element, by=By.ID, timeout=10):
+    WebDriverWait(driver, timeout).until( \
+            EC.presence_of_element_located((by, element)))
+
+def get_element(driver, element, by = By.ID, timeout=10):
+    WebDriverWait(driver, timeout).until( \
+        EC.presence_of_element_located((by, element)))
+    ele = driver.find_element(by, element)
+    return ele
+
+def get_elements(driver, element, by = By.ID, timeout=10):
+    WebDriverWait(driver, timeout).until( \
+        EC.presence_of_element_located((by, element)))
+    ele = driver.find_elements(by, element)
+    return ele
 
 class StealthDriver():
     """ Undetected chromdriver with rotating proxies """
@@ -373,25 +417,75 @@ class InstagramInfluencer(InstagramProfile):
 
 class YoutubeChannel():
     def __init__(self, api_key, channel):
+        self.driver = make_driver()
+        self.channel = channel
         self.channel_id = self.get_channel_id(channel)
-        self.data = self.get_channel_data(api_key, self.channel_id)
+        self.data = self.get_channel_data(api_key, n_videos=10)
 
     def get_channel_id(self, channel):
         r = requests.get(f"https://youtube.com/c/{channel}")
         soup = BeautifulSoup(r.text)
         href = soup.select_one("link[itemprop='url']").attrs["href"]
         return href.split("/")[-1]
-    
-    def get_channel_data(self, api_key, channel_id):
+
+    def get_video_id(self, n=10):
+        self.driver.get(f"https://www.youtube.com/c/{self.channel}/videos")
+        soup = BeautifulSoup(self.driver.page_source)
+        hrefs = [a.attrs["href"] for a in soup.select("a[id=video-title]")]
+        ids = []
+        for href in hrefs[0:n]:
+            if "/shorts" in href:
+                ids.append(href.split("/")[-1])
+            else:
+                ids.append(href.split("=")[-1])
+        return ids
+
+    def get_video_comments(self, api_key, video_id):
+        os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+        youtube = googleapiclient.discovery.build(
+            "youtube", "v3", developerKey=api_key
+        )
+        request = youtube.commentThreads().list(
+            part="snippet",
+            videoId=video_id
+        )
+        response = request.execute()
+        return response
+
+    def get_video_data(self, api_key, video_id):
+        os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+        youtube = googleapiclient.discovery.build(
+            "youtube", "v3", developerKey=api_key
+        )
+        request = youtube.videos().list(
+            part="statistics,localizations,snippet,statistics,status,topicDetails,recordingDetails",
+            id=video_id
+        )
+        response = request.execute()
+        return {
+            "title": response["items"][0]["snippet"]["title"],
+            "description": response["items"][0]["snippet"]["description"],
+            "date_published": response["items"][0]["snippet"]["publishedAt"],
+            "channel": response["items"][0]["snippet"]["channelTitle"],
+            "n_views": response["items"][0]["statistics"]["viewCount"],
+            "n_likes": response["items"][0]["statistics"]["likeCount"],
+            "n_favorites": response["items"][0]["statistics"]["favoriteCount"],
+            "n_comments": response["items"][0]["statistics"]["commentCount"],
+            "comments": self.get_video_comments(api_key, video_id)
+        }
+
+    def get_channel_data(self, api_key, n_videos=10):
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
         youtube = googleapiclient.discovery.build(
             "youtube", "v3", developerKey=api_key
         )
         request = youtube.channels().list(
             part="statistics,contentOwnerDetails,localizations,snippet,statistics,status,topicDetails,brandingSettings",
-            id=channel_id
+            id=self.channel_id
         )
         response = request.execute()
+        keywords = response["items"][0]["brandingSettings"]["channel"]["keywords"]
+        videos = self.get_video_id(n_videos)
         return {
             "title": response["items"][0]["snippet"]["title"],
             "description": re.sub(r"\\", "", re.sub(r"\n+", " ", response["items"][0]["snippet"]["description"])),
@@ -403,8 +497,6 @@ class YoutubeChannel():
             "video_count": response["items"][0]["statistics"]["videoCount"],
             "topic_categories": response["items"][0]["topicDetails"]["topicCategories"],
             "country": response["items"][0]["brandingSettings"]["channel"]["country"],
-            "keywords": response["items"][0]["brandingSettings"]["channel"]["keywords"]
+            "keywords": keywords,
+            "videos": [self.get_video_data(api_key, video) for video in videos]
         }
-
-    def get_channel_analytics(self, api_key, channel_id):
-        pass
