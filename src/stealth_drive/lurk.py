@@ -15,7 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 # Selenium functions
-def make_driver(proxy=None, load_images=False):
+def make_driver(proxy=None, load_images=False, ublock=False):
     options = uc.ChromeOptions()
     if proxy:
         options.add_argument(f"--proxy-server={proxy}")
@@ -23,7 +23,8 @@ def make_driver(proxy=None, load_images=False):
         prefs = {"profile.managed_default_content_settings.images": 2}
         options.add_experimental_option("prefs", prefs)
     driver = uc.Chrome(options=options, use_subprocess=True)
-    input("You have started an Undetected Chromedriver!\nTake a minute to set up ublock origin before scraping.\n")
+    if ublock:
+        input("You have started an Undetected Chromedriver!\nTake a minute to set up ublock origin before scraping.\n")
     return driver
 
 def fill_form(driver, text, element, by = By.ID, timeout=10):
