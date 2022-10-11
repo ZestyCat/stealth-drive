@@ -422,6 +422,7 @@ class YoutubeChannel():
         self.channel = channel
         self.channel_id = self.get_channel_id(channel)
         self.data = self.get_channel_data(api_key, n_videos=10)
+        self.driver.quit()
 
     def get_channel_id(self, channel):
         r = requests.get(f"https://youtube.com/c/{channel}")
