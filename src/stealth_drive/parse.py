@@ -34,7 +34,7 @@ def find_instagram(text, multi=False):
         return ""
 
 def find_twitter(text, multi=False):
-    t = re.findall(r"instagram\.com/[^\s]+", text, re.I)
+    t = re.findall(r"twitter\.com/[^\s]+", text, re.I)
     if len(t):
         if multi:
             return list(set(t))
