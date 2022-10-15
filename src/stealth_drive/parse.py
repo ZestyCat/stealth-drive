@@ -3,16 +3,53 @@ from urllib.parse import urlsplit
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
-def find_emails(text):
-    try:
-        emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", text, re.I)
-        if len(emails):
+def find_email(text, multi=False):
+    emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", text, re.I)
+    if len(emails):
+        if multi:
             return list(set(emails))
-        else:
-            return ""
-    except Exception as error:
-        print("Could not get email")
-        return error
+        if not multi:
+            return emails[0]
+    else:
+        return ""
+
+def find_facebook(text, multi=False):
+    fb = re.findall(r"facebook\.com/[a-z0-9]+", text, re.I)
+    if len(fb):
+        if multi:
+            return list(set(fb))
+        if not multi:
+            return fb[0]
+    else:
+        return ""
+
+def find_instagram(text, multi=False):
+    ig = re.findall(r"instagram\.com/[a-z0-9]+", text, re.I)
+    if len(ig):
+        if multi:
+            return list(set(ig))
+        if not multi:
+            return ig[0]
+    else:
+        return ""
+
+def find_twitter(text, multi=False):
+    t = re.findall(r"instagram\.com/[a-z0-9]+", text, re.I)
+    if len(t):
+        if multi:
+            return list(set(t))
+        if not multi:
+            return t[0]
+    else:
+        return ""
+
+def find_contacts(text):
+    return {
+        "email" : find_email(text),
+        "facebook" : find_facebook(text),
+        "instagram" : find_instagram(text),
+        "twitter" : find_twitter(text)
+    }
 
 def find_images(obj):
     """ obj may be sting or Requests response object """
