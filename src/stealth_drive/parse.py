@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 def find_email(text, multi=False):
     emails = re.findall(r"[a-z0-9\.\-]+@[a-z0-9\.\-+_]+\.[a-z]+", text, re.I)
+    emails = [email for email in emails if not re.match(r"(\.jpg)|(\.png)|(\.gif)|(\.svg)", email)]
     if len(emails):
         if multi:
             return list(set(emails))
@@ -85,10 +86,10 @@ def find_contact_url(obj, base_url=None):
         return contact_url
     except AttributeError as error:
         print("no contact url found")
-        return None
+        return error
     except Exception as error:
         print("Could not get contact url")
-        return None
+        return error
 
 def find_phone_and_email(obj):
     """ obj may be sting or Requests response object """
