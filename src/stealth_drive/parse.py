@@ -85,6 +85,7 @@ def find_contact_url(obj, base_url=None):
             contact_url = urljoin(base_url, contact_url)
         return contact_url
     except AttributeError as error:
+        print(error)
         print("no contact url found")
         return error
     except Exception as error:
