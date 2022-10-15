@@ -14,7 +14,7 @@ def find_email(text, multi=False):
         return ""
 
 def find_facebook(text, multi=False):
-    fb = re.findall(r"facebook\.com/[a-z0-9]+", text, re.I)
+    fb = re.findall(r"facebook\.com/[^\s]+", text, re.I)
     if len(fb):
         if multi:
             return list(set(fb))
@@ -24,7 +24,7 @@ def find_facebook(text, multi=False):
         return ""
 
 def find_instagram(text, multi=False):
-    ig = re.findall(r"instagram\.com/[a-z0-9]+", text, re.I)
+    ig = re.findall(r"instagram\.com/[^\s]+", text, re.I)
     if len(ig):
         if multi:
             return list(set(ig))
@@ -34,7 +34,7 @@ def find_instagram(text, multi=False):
         return ""
 
 def find_twitter(text, multi=False):
-    t = re.findall(r"instagram\.com/[a-z0-9]+", text, re.I)
+    t = re.findall(r"instagram\.com/[^\s]+", text, re.I)
     if len(t):
         if multi:
             return list(set(t))
