@@ -116,6 +116,9 @@ def spb_get(api_key, url, headers=None, try_requests=True, premium=False):
         print(proxies)
         r = requests.get(url, proxies=proxies, headers=headers, verify=False)
         return r
+    except ConnectionError as error:
+        print(error)
+        return None
 
 def spb_google(client, query, render_js="False"):
     query = quote_plus(query)
@@ -189,9 +192,9 @@ class InstagramProfile():
         self.username = username
         self.posts = self.get_posts(username, n=posts)
         self.data = self.get_basic_info(username)
-        if get_follower_list:
-            self.follower_list = self.get_follower_list(my_username, my_password)
-            self.data["follower_list"] = self.follower_list
+        #if get_follower_list:
+        #    self.follower_list = self.get_follower_list(my_username, my_password)
+        #    self.data["follower_list"] = self.follower_list
         self.data["posts"] = self.posts
 
     def get_basic_info(self, username):
@@ -200,7 +203,7 @@ class InstagramProfile():
         self.driver.get(self.url)
         soup = BeautifulSoup(self.driver.page_source)
         try:
-            n_posts = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
+            n_posts = soup.select_one("div[class='item item_posts'] > div[class='num']").text.replace(",", "").strip()
             n_posts = re.sub(r"\.\dk", "500", n_posts)
             n_posts = re.sub("k", "000", n_posts)
         except AttributeError:
@@ -337,9 +340,6 @@ class InstagramInfluencer(InstagramProfile):
         requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
         followers = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
         self.followers = followers.json()
-        if len(self.followers) < n:
-            pass
-            # do account cycling
 
     def get_following(self, username, apify_api_key, session_id,  n=100):
         print(f"getting following for {username}")
