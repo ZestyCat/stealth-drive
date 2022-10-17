@@ -1,20 +1,22 @@
-from collections import deque
-from requests.api import get
 from selenium.common.exceptions import TimeoutException
-import googleapiclient.discovery
-from urllib.parse import urlsplit, quote_plus, urljoin
-import undetected_chromedriver as uc
-from bs4 import BeautifulSoup
-import requests
-import re
-import os
-import time
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import undetected_chromedriver as uc
+import googleapiclient.discovery
+import requests
+
+from urllib.parse import urlsplit, quote_plus, urljoin
+from bs4 import BeautifulSoup
+import re
+
+import os
+import time
+import random
+
 
 # Selenium functions
-def make_driver(proxy=None, load_images=False, ublock=False):
+def make_driver(proxy=None, load_images=False, config=True):
     options = uc.ChromeOptions()
     if proxy:
         options.add_argument(f"--proxy-server={proxy}")
@@ -22,15 +24,21 @@ def make_driver(proxy=None, load_images=False, ublock=False):
         prefs = {"profile.managed_default_content_settings.images": 2}
         options.add_experimental_option("prefs", prefs)
     driver = uc.Chrome(options=options, use_subprocess=True)
-    if ublock:
-        input("You have started an Undetected Chromedriver!\nTake a minute to set up ublock origin before scraping.\n")
+    if config:
+        input("You have started an Undetected Chromedriver!\nTake a minute to configure the browser before scraping.\n") # Install ublock origin or other plugins
     return driver
 
-def fill_form(driver, text, element, by = By.ID, timeout=10):
+def fill_form(driver, text, element, by = By.ID, timeout=10, human=False):
     input = WebDriverWait(driver, timeout).until( \
         EC.presence_of_element_located((by, element)))
     input.clear()
-    input.send_keys(text)
+    if human: # Imitate human behavior)
+        time.sleep(random.uniform(0.3, 1))
+        for letter in text:
+            input.send_keys(letter)
+            time.sleep(random.uniform(0.1, 0.75))
+    else:
+        input.send_keys(text)
    
 def click_item(driver, element, by = By.ID, timeout=10, multi=False):
     WebDriverWait(driver, timeout).until( \
@@ -65,309 +73,99 @@ def get_elements(driver, element, by = By.ID, timeout=10):
     ele = driver.find_elements(by, element)
     return ele
 
-def get_proxies(https = True, countries = None):
-    url = "https://free-proxy-list.net/"
-    html = requests.get(url).content
-    soup = BeautifulSoup(html, features="lxml")
-    rows = soup.find_all("table")[0].find_all("tr")
-    table_data = []
-    for row in rows:
-        data = [td.text for td in row]
-        if https:
-            data = [d for d in data if data[6] == "yes"]
-        if countries:
-            data = [d for d in data if \
-                    data[2] in countries or data[3] in countries]
-        if len(data) != 0:
-            table_data.append(data)
-    return [f"{row[0]}:{str(row[1])}" for row in table_data]
 
+# Instagram functions
+def instagram_login(driver, my_username, my_password):
+    driver.get("https://instagram.com/login")
+    fill_form(driver, my_username, "input[name='username']", By.CSS_SELECTOR, human=True)
+    time.sleep(random.uniform(0.1, 0.3))
+    fill_form(driver, my_password, "input[name='password']", By.CSS_SELECTOR, human=True)
+    time.sleep(random.uniform(0.1, 0.3))
+    click_item(driver, "button[type='submit']", By.CSS_SELECTOR)
+    time.sleep(random.uniform(0.1, 0.3))
+    click_item(driver, "div[class='_ac8f'] > button[class='_acan _acao _acas']", By.CSS_SELECTOR)
 
-def proxy_get(proxies, url, headers=None, timeout=3):
-    """ Simple free proxy rotation for free proxy lists """
-    """ for paid proxy lists use spb_elevate """
-    for proxy in proxies:
-        try:
-            response = requests.get(url, proxies= {"https":proxy}, headers=headers, timeout=timeout)
-            return response
-        except:
-            continue
-
-def spb_get(api_key, url, headers=None, try_requests=True, premium=False):
-    """ Try without proxy, try with scrapingbee proxy """
+def get_instagram_user_info(driver, username):
+    print(f"getting profile data for {username}")
+    driver.get(f"https://instastories.watch/en/{username}/")
+    soup = BeautifulSoup(driver.page_source)
     try:
-        if not try_requests:
-            raise ValueError
-        r = requests.get(url, headers=headers)
-        if r.status_code != 200:
-            raise ValueError
-        return r
-    except ValueError:
-        if premium:
-            proxies = {
-                "http": f"http://{api_key}:render_js=False&premium_proxy=True@proxy.scrapingbee.com:8886",
-                "https": f"https://{api_key}:render_js=False&premium_proxy=True@proxy.scrapingbee.com:8887"
-            }
-        else:
-            proxies = {
-                "http": f"http://{api_key}:render_js=False@proxy.scrapingbee.com:8886",
-                "https": f"https://{api_key}:render_js=False@proxy.scrapingbee.com:8887"
-            }
-        print(proxies)
-        r = requests.get(url, proxies=proxies, headers=headers, verify=False)
-        return r
-    except ConnectionError as error:
-        print(error)
-        return None
+        stats = [tag.text for tag in soup.select("ul.fIYNp > li")]
+        n_posts, n_followers, n_following = [s for s in stats]
+        title = soup.select_one("h1.ArEj5").text
+        bio = soup.select_one("p.T5HPc").text
+    except AttributeError:
+        print("Could not get user stats! Maybe they are a private account.")
+        n_posts, n_followers, n_following, title, bio = ["private" for p in range(1,6)]
+    return {
+        "username": username,
+        "title": title, 
+        "bio": bio,
+        "n_posts": n_posts,
+        "n_followers": n_followers,
+        "n_following": n_following
+    }
 
-def spb_google(client, query, render_js="False"):
-    query = quote_plus(query)
-    google = "https://www.google.com/search?client=firefox-b-1-d&q="
-    r = client.get(google+query,
-        {
-            "custom_google" : "True",
-            "render_js" : render_js,
-        }
-    )  
-    return r
-
-def crawl(start_url, proxy=False, proxies=None, callback=None, **kwargs):
-    """Generator function does callback on response text"""
-    new_urls = deque([start_url])
-    processed_urls = set()
-    while len(new_urls):
-        url = new_urls.popleft()
-        processed_urls.add(url)
-        parts = urlsplit(url)
-        base_url = f"{parts.scheme}://{parts.netloc}"
-        
-        print(f"processing {url}")
-        try:
-            if proxy:
-                response = proxy_get(proxies, url)
-            else:
-                response = requests.get(url)
-        except (requests.exceptions.MissingSchema, requests.exceptions.ConnectionError):
-            continue
-        soup = BeautifulSoup(response.text)
-        for a in soup.find_all("a"):
-            link = a.attrs["href"] if "href" in a.attrs else ""
-            if link.startswith("/"):
-                link = base_url + link
-            if link.startswith("http") and \
-                    base_url in link and not \
-                    link in new_urls and not \
-                    link in processed_urls:
-                        new_urls.append(link)
-        if callback:
-            yield callback(response, **kwargs)
-        else:
-            yield response
-
-def get_until_got(n_tries, logfile=None): # nice decorator to try get request n times until you get a 200, and optional logging
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            for i in range(0, n_tries):
-                try:
-                    r = func(*args, **kwargs)
-                    if r.status_code != 200:
-                        raise ValueError
-                    if logfile:
-                        text = f"Got {args[1]} after {i} attempts.\n"
-                        with open(logfile, "a") as f:
-                            f.write(text)
-                    return r
-                except ValueError:
-                    if logfile:
-                        text = f"Failed to get {args[1]} after {i} attempts with message {r.text}\nfor reason {r.reason}\n"
-                        with open(logfile, "a") as f:
-                            f.write(text)
-                    continue
-        return wrapper
-    return decorator
-
-class InstagramProfile():
-    def __init__(self, driver, username, posts=10, get_follower_list=True, my_username=None, my_password=None):
-        self.driver = driver
-        self.username = username
-        self.posts = self.get_posts(username, n=posts)
-        self.data = self.get_basic_info(username)
-        #if get_follower_list:
-        #    self.follower_list = self.get_follower_list(my_username, my_password)
-        #    self.data["follower_list"] = self.follower_list
-        self.data["posts"] = self.posts
-
-    def get_basic_info(self, username):
-        print(f"getting profile data for {username}")
-        self.url = f"https://pixwox.com/profile/{username}/"
-        self.driver.get(self.url)
-        soup = BeautifulSoup(self.driver.page_source)
-        try:
-            n_posts = soup.select_one("div[class='item item_posts'] > div[class='num']").text.replace(",", "").strip()
-            n_posts = re.sub(r"\.\dk", "500", n_posts)
-            n_posts = re.sub("k", "000", n_posts)
-        except AttributeError:
-            n_posts = ""
-        try:
-            n_followers = soup.select_one("div[class='item item_followers'] > div[class='num']").text.replace(",", "").strip()
-            n_followers = re.sub(r"\.\dk", "500", n_followers)
-            n_followers = re.sub("k", "000", n_followers)
-        except AttributeError:
-            n_followers = ""
-        try:
-            n_following = soup.select_one("div[class='item item_following'] > div[class='num']").text.replace(",", "").strip()
-            n_following = re.sub(r"\.\dk", "500", n_following)        
-            n_following = re.sub("k", "000", n_following)        
-        except AttributeError:
-            n_following = ""
-        try:
-            title = soup.select_one("h1[class='fullname']").text
-        except AttributeError:
-            title = ""
-        try:
-            bio = soup.select_one("div[class='sum']").text
-        except AttributeError:
-            bio = ""
-        data = {
-            "username": username,
-            "title": title, 
-            "bio": bio,
-            "n_posts": int(n_posts),
-            "n_followers": int(n_followers),
-            "n_following": int(n_following)
-        }
-        return data
-
-    def get_posts(self, username, n=10, get_comments=True):
-        print(f"getting posts for {username}")
-        self.driver.get(f"https://pixwox.com/profile/{username}")
-        soup = BeautifulSoup(self.driver.page_source)
-        try:
-            n_posts = int(soup.select_one("div[class='item item_posts'] > div[class='num']").text.replace(",", "").strip())
-            if n_posts == 0:
-                return []
-            if soup.select_one("div[class='notice'] > div[class='txt']"):
-                return []
-        except AttributeError:
-            print("Page not found!")
-        atags = soup.select("a[class='cover_link']")
+def get_instagram_user_posts(driver, username, n=10):
+    print(f"getting posts for {username}")
+    driver.get(f"https://pixwox.com/profile/{username}")
+    soup = BeautifulSoup(driver.page_source)
+    atags = soup.select("a[class='cover_link']")
+    try:
         hrefs = [a.attrs["href"] for a in atags]
-        links = [urljoin("https://pixwox.com", href) for href in hrefs]
-        posts = []
-        for i, link in enumerate(links):
-            if i >= n:
-                break
-            try:
-                self.driver.get(link)
-            except TimeoutException as e:
-                print(e)
-                continue # if timeout
-            post = {
-                "post": link,
-                "likes": 0,
-                "caption": "",
-                "media": "",
-                "mentions": [],
-                "hashtags": [],
-                "comments": []
-            }
-            soup = BeautifulSoup(self.driver.page_source)
-            wrapper = soup.select_one("div[class='view_w']")
-            post["likes"] = soup.select_one("div[class='count_item count_item_like cf'] > span[class='num']").text
-            if post["likes"] == 0:
-                post["likes"] = "NA" # Viewing likes on some posts is disabled
-            post["caption"] = wrapper.select_one("img").attrs["alt"]
-            post["media"] = wrapper.select_one("a").attrs["href"]
-            post["mentions"] = re.findall(r"@\w+", post["caption"])
-            post["hashtags"] = re.findall(r"#\w+", post["caption"])
-            if get_comments:
-                try:
-                    comments = soup.select("div[class=comment_w]")
-                    for c in comments:
-                        comment = {
-                            "username": c.select_one("div[class='username'] > a").text.replace("@", ""),
-                            "comment": c.select_one("div[class='sum']").text
-                        }
-                        post["comments"].append(comment)
-                except:
-                    pass
-            posts.append(post)
-        return posts
+    except AttributeError:
+        print("Could not get user posts! Maybe they are a private account.")
+        return None
+    links = [urljoin("https://pixwox.com", href) for href in hrefs]
+    posts = []
+    for i, link in enumerate(links): # Try grequests
+        if i >= n:
+            break
+        driver.get(link)
+        soup = BeautifulSoup(driver.page_source)
+        wrapper = soup.select_one("div[class='view_w']")
+        caption = wrapper.select_one("img").attrs["alt"]
+        comments = []
+        try:
+            comment_divs = soup.select("div[class=comment_w]")
+            for c in comment_divs:
+                comment = {
+                    "username": c.select_one("div[class='username'] > a").text.replace("@", ""),
+                    "comment": c.select_one("div[class='sum']").text
+                }
+                comments.append(comment)
+        except AttributeError:
+            pass
+        posts.append({
+            "post": link,
+            "likes": soup.select_one("div[class='count_item count_item_like cf'] > span[class='num']").text,
+            "caption": caption,
+            "media": wrapper.select_one("a").attrs["href"],
+            "mentions": re.findall(r"@\w+", caption),
+            "hashtags": re.findall(r"#\w+", caption),
+            "comments": comments
+        })
+    return posts
 
-    def get_follower_list(self, my_username, my_password):
-        #instagram_login(my_username, my_password)
-        input("Login to instagram")
-        self.driver.get(f"https://www.instagram.com/{self.username}/followers/")
-        scroll = """
-            scrollingDiv = document.querySelector("div._aano");
-            scrollingDiv.scrollTop = scrollTopMax;
-        """
-        followers = set()
-        n = get_elements(self.driver, "span[class='_ac2a']", By.CSS_SELECTOR)[0].text
-        self.data["n_followers"] = n # Update self.data
-        while len(followers < n):
-            print(f"got {len(followers)} followers from {self.username}")
-            self.driver.execute_script(scroll)
-            time.sleep(3)
-            follower_div = get_element(self.driver, "div._aano", By.CSS_SELECTOR)
-            soup = BeautifulSoup(follower_div)
-            follower_names = [div.text for div in soup.select("div[class=' _ab8y  _ab94 _ab97 _ab9f _ab9k _ab9p _abcm']")]
-            followers.update(follower_names)
-        return list(followers)
+def get_follower_list(driver, username, n=300):
+    driver.get(f"https://www.instagram.com/{username}/followers/")
+    time.sleep(random.uniform(1,4))
+    scroll = """
+        scrollingDiv = document.querySelector("div._aano");
+        scrollingDiv.scrollTop = scrollingDiv.scrollHeight * {};
+    """
+    followers = set()
+    while len(followers) < n:
+        print(f"got {len(followers)} followers from {username}")
+        driver.execute_script(scroll.format(random.uniform(0.99, 0.999))) # Random scroll length
+        time.sleep(random.uniform(1,4)) # Random scroll pause
+        follower_div = get_element(driver, "div._aano", By.CSS_SELECTOR).get_attribute("outerHTML")
+        soup = BeautifulSoup(follower_div)
+        follower_names = [s.text for s in soup.select("span[class='_aacl _aaco _aacw _aacx _aad7 _aade']")]
+        print(follower_names)
+        followers.update(follower_names)
+    return list(followers)
 
-
-class InstagramInfluencer(InstagramProfile):
-    def __init__(self, driver, username, session_id, apify_api_key, posts=10, follower_count=100):
-        super().__init__(driver, username, posts=posts)
-        self.get_followers(username, apify_api_key, session_id, n=follower_count)
-        self.data["followers"] = self.followers
-        self.get_audience_posts(n=posts)
-
-    def get_followers(self, username, apify_api_key, session_id,  n=100):
-        print(f"getting followers for {username}")
-        url = f"https://instagram.com/{username}"
-        json = {
-            "includeFollowers": True,
-            "includeFollowing": False,
-            "maxItems": n,
-            "proxy": {
-                "useApifyProxy": False
-            },
-            "sessionid": session_id,
-            "startUrls": [{"url": url}]
-            
-        }
-        requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
-        followers = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
-        self.followers = followers.json()
-
-    def get_following(self, username, apify_api_key, session_id,  n=100):
-        print(f"getting following for {username}")
-        url = f"https://instagram.com/{username}"
-        json = {
-            "includeFollowers": False,
-            "includeFollowing": True,
-            "maxItems": n,
-            "proxy": {
-                "useApifyProxy": False
-            },
-            "sessionid": session_id,
-            "startUrls": [{"url": url}]
-            
-        }
-        requests.post(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/run-sync?token={apify_api_key}", json=json)
-        following = requests.get(f"https://api.apify.com/v2/acts/alexey~instagram-audience-profile-follows/runs/last/dataset/items?token={apify_api_key}")
-        self.following = following.json()
-
-    def get_audience_posts(self, n=10):
-        for i, follower in enumerate(self.data["followers"]):
-            print(f"getting profile data and posts for follower {i} of {len(self.data['followers'])}")
-            username = follower["username"]
-            basic_info = super().get_basic_info(username)
-            posts = super().get_posts(username, n=n, get_comments=False)
-            self.data["followers"][i]["posts"] = posts
-            self.data["followers"][i]["n_followers"] = basic_info["n_followers"]
-            self.data["followers"][i]["n_following"] = basic_info["n_following"] 
 
 class YoutubeChannel():
     def __init__(self, api_key, channel):
